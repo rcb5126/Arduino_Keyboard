@@ -122,14 +122,14 @@ void setup()
 // so anywhere in the matrix you have a zero it means that switch is pressed
 void readMatrix() {
     // iterate the rows
-    for (int rowIndex=0; rowIndex < 6; rowIndex++) {
+    for (int rowIndex=0; rowIndex < ROWS_COUNT; rowIndex++) {
         // set the row to output low
         byte curRow = rows[rowIndex];
         pinMode(curRow, OUTPUT);
         digitalWrite(curRow, LOW);
         
         // iterate through the columns reading the value - should be zero if switch is pressed
-        for (int colIndex=0; colIndex < 16; colIndex++) {
+        for (int colIndex=0; colIndex < COLS_COUNT; colIndex++) {
             byte rowCol = cols[colIndex];
             pinMode(rowCol, INPUT_PULLUP);
             switchMatrix[rowIndex][colIndex] = digitalRead(rowCol);
