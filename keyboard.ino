@@ -1,3 +1,6 @@
+//File: Keyboard.ino
+//Author: rcb5126
+//Date: 10/9/2020
 #include "Keyboard.h"
 
 // define number of rows and colums and your corresponding keyboard pins
