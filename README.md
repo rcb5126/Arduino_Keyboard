@@ -2,6 +2,7 @@
 arduino code for mechanical keyboard made easy
 
 The keyboard I made is a handwired 89 key and is based off of the teensy 2.0++
+Wired according to the Brown Fox/Matt30 guides found on reddit.
 
 The code is pretty straightforward. 
 Just change your pin declarations, the number of columns and rows, and the FUNCTION_ROW/FUNCTION_COL, and then fill in the corresponding Matrices with the keycodes.
