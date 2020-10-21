@@ -179,10 +179,10 @@ void setKeyStates() {
                               Keyboard.press(characterKeys[i][j]);
                               // capslock led
                               if (characterKeys[i][j] == KEY_CAPS_LOCK) {
-#ifdef CAPSLOCK
-                                   digitalWrite(CAPSLOCK, HIGH);
-#endif
                                    bCapsLock = !bCapsLock;
+#ifdef CAPSLOCK
+                                   digitalWrite(CAPSLOCK, bCapsLock ? HIGH : LOW);
+#endif
                               }
 
                               // setting the lock key
@@ -196,9 +196,7 @@ void setKeyStates() {
                          } else {
                               Keyboard.release(characterKeys[i][j]);
                               if (characterKeys[i][j] == KEY_CAPS_LOCK && bCapsLock == false) {
-#ifdef CAPSLOCK
-                                   digitalWrite(CAPSLOCK, LOW);
-#endif
+                                   // do nothing
                               }
                          }
                     }
@@ -216,10 +214,10 @@ void setKeyStates() {
                          
                               // capslock led
                               if (characterKeys[i][j] == KEY_CAPS_LOCK) {
-#ifdef CAPSLOCK
-                                   digitalWrite(CAPSLOCK, HIGH);
-#endif
                                    bCapsLock = !bCapsLock;
+#ifdef CAPSLOCK
+                                   digitalWrite(CAPSLOCK, bCapsLock ? HIGH : LOW);
+#endif
                               }
                          }
                     } else { // key is not pressed and was before
@@ -228,9 +226,7 @@ void setKeyStates() {
                          } else {
                               Keyboard.release(characterKeys[i][j]);
                               if (characterKeys[i][j] == KEY_CAPS_LOCK && bCapsLock == false) {
-#ifdef CAPSLOCK
-                                   digitalWrite(CAPSLOCK, LOW);
-#endif
+                                   // do nothing
                               }
                          }
                     }
