@@ -7,7 +7,7 @@
 #define ROWS_COUNT 6
 #define ROW0 0   // pin_d0
 #define ROW1 1   // pin_d1
-#define ROW2 2   // pin_d2
+#define ROW2 44   // pin_d2
 #define ROW3 3   // pin_d3
 #define ROW4 4   // pin_d4
 #define ROW5 5   // pin_d5
@@ -37,7 +37,7 @@
 
 
 // function lock
-//#define FUNCTION_LOCK
+#define FUNCTION_LOCK
 
 // set the row and column pins in the array
 byte cols[16] = {COL0, COL1, COL2, COL3, COL4, COL5, COL6, COL7, COL8, COL9, COL10, COL11, COL12, COL13, COL14, COL15 };
@@ -51,6 +51,10 @@ byte switchMatrixLast[ROWS_COUNT][COLS_COUNT] = {0};
 // https://www.pjrc.com/teensy/usb_keyboard.html
 #define KC_NULL 0x00
 #define KC_FN 0xFF
+#define KEY_SP0 0xFF0
+#define KEY_SP1 0xFF1
+#define KEY_SP2 0xFF2
+#define KEY_SP3 0xFF3
 
 // could move this to a search function but defined constants are just fine for me
 #define FUNCTION_ROW 5
@@ -78,11 +82,11 @@ unsigned int functionKeys[ROWS_COUNT][COLS_COUNT] = {
      {caps,   a,  s,  d,  f,  g,  h,  j,  k,  l,  ;,    ',    ,  ret,   no, end}, 
      {lsft,   z,  x,  c,  v,  b,  n,  m, no,',',  .,    /,rsft,   no,   up, menu}, 
      {ctrl, alt, wnd,no, no,spc, no, no, no, no, fn, ctrl, lft,   no,   dn, right}*/
-     {KEY_ESC,        KEY_A,        KEY_F2,       KEY_F3,  KEY_F4,  KEY_F5,    KEY_F6,  KEY_F7,  KEY_F8,  KEY_F9,    KEY_F10,       KEY_F11,        KEY_F12,         KEY_INSERT,    KEY_PAGE_UP,   KEY_HOME},
+     {KC_NULL,        KC_NULL,        KC_NULL,       KC_NULL,  KC_NULL,  KC_NULL,    KC_NULL,  KC_NULL,  KC_NULL,  KC_NULL,    KC_NULL,       KC_NULL,        KC_NULL,         KC_NULL,    KC_NULL,   KC_NULL},
      {KEY_TILDE,      KEY_1,        KEY_2,        KEY_3,   KEY_4,   KEY_5,     KEY_6,   KEY_7,   KEY_8,   KEY_9,     KEY_0,         KEY_MINUS,      KEY_EQUAL,       KEY_BACKSPACE, KC_NULL,       KEY_DELETE}, 
      {KEY_TAB,        KEY_Q,        KEY_W,        KEY_E,   KEY_R,   KEY_T,     KEY_Y,   KEY_U,   KEY_I,   KEY_O,     KEY_P,         KEY_LEFT_BRACE, KEY_RIGHT_BRACE, KC_NULL,       KEY_BACKSLASH, KEY_PAGE_DOWN}, 
      {KEY_CAPS_LOCK,  KEY_A,        KEY_S,        KEY_D,   KEY_F,   KEY_G,     KEY_H,   KEY_J,   KEY_K,   KEY_L,     KEY_SEMICOLON, KEY_QUOTE,      KC_NULL,         KEY_ENTER,     KC_NULL,       KEY_END}, 
-     {KEY_LEFT_SHIFT, KEY_Z,        KEY_X,        KEY_C,   KEY_V,   KEY_B,     KEY_N,   KEY_M,   KC_NULL, KEY_COMMA, KEY_PERIOD,    KEY_SLASH,      KEY_RIGHT_SHIFT, KC_NULL,       KEY_UP,        KEY_RIGHT_GUI}, 
+     {KEY_LEFT_SHIFT, KEY_SP0,      KEY_SP1,      KEY_SP2, KEY_SP3, KEY_B,     KEY_N,   KEY_M,   KC_NULL, KEY_COMMA, KEY_PERIOD,    KEY_SLASH,      KEY_RIGHT_SHIFT, KC_NULL,       KEY_UP,        KEY_RIGHT_GUI}, 
      {KEY_LEFT_CTRL,  KEY_LEFT_ALT, KEY_LEFT_GUI, KC_NULL, KC_NULL, KEY_SPACE, KC_NULL, KC_NULL, KC_NULL, KC_NULL,   KC_FN,         KEY_RIGHT_CTRL, KEY_LEFT,        KC_NULL,       KEY_DOWN,      KEY_RIGHT}
 };
 
@@ -91,7 +95,6 @@ bool bCapsLock = false;
 #ifdef FUNCTION_LOCK
      bool bFnLock = false;
 #endif
-
 
 //#define TESTING
 void setup()
@@ -161,6 +164,45 @@ void printMatrix() {
     Serial.print(matrixString);
 }
 
+bool isSpecialKey(unsigned int val)
+{
+     if (val > KC_FN) {
+          return true;
+     } else {
+          return false;
+     }
+}
+
+void sendSpecialKeys(unsigned int val)
+{
+     switch(val) {
+          case KEY_SP0:
+               Keyboard.press(KEY_LEFT_CTRL);
+               Keyboard.press(KEY_Z);
+               Keyboard.release(KEY_LEFT_CTRL);
+               Keyboard.release(KEY_Z);
+               break;
+          case KEY_SP1:
+               Keyboard.press(KEY_LEFT_CTRL);
+               Keyboard.press(KEY_X);
+               Keyboard.release(KEY_LEFT_CTRL);
+               Keyboard.release(KEY_X);
+               break;
+          case KEY_SP2:
+               Keyboard.press(KEY_LEFT_CTRL);
+               Keyboard.press(KEY_C);
+               Keyboard.release(KEY_LEFT_CTRL);
+               Keyboard.release(KEY_C);
+               break;
+          case KEY_SP3:
+               Keyboard.press(KEY_LEFT_CTRL);
+               Keyboard.press(KEY_V);
+               Keyboard.release(KEY_LEFT_CTRL);
+               Keyboard.release(KEY_V);
+               break;
+     }
+}
+
 // call keyboard press/release for the appropriate states
 void setKeyStates() {
      bool bFunction = switchMatrix[FUNCTION_ROW][FUNCTION_COL] == 0;
@@ -170,12 +212,14 @@ void setKeyStates() {
                     
 #ifdef FUNCTION_LOCK
                     if (switchMatrix[i][j] == 0 && switchMatrixLast[i][j] == 1) { // key is pressed and wasn't before
-                         if (bFnLock) {
-                              Keyboard.press(functionKeys[i][j]);
-                              if (characterKeys[i][j] == KC_FN) { // second press of the lock key
-                                   bFnLock = !bFnLock;
+                         if (bFnLock) { // using function lock
+                              if (!isSpecialKey(functionKeys[i][j])) {
+                                   Keyboard.press(functionKeys[i][j]);
+                                   if (characterKeys[i][j] == KC_FN) { // second press of the lock key
+                                        bFnLock = !bFnLock;
+                                   }
                               }
-                         } else {
+                         } else { // not using function lock
                               Keyboard.press(characterKeys[i][j]);
                               // capslock led
                               if (characterKeys[i][j] == KEY_CAPS_LOCK) {
@@ -191,9 +235,13 @@ void setKeyStates() {
                               }
                          }
                     } else { // key is not pressed and was before
-                         if (bFnLock) {
-                              Keyboard.release(functionKeys[i][j]);
-                         } else {
+                         if (bFnLock) { // using function lock
+                              if (isSpecialKey(functionKeys[i][j])) { // send the macro keys
+                                   sendSpecialKeys(functionKeys[i][j]);
+                              } else { // release the normal keys
+                                   Keyboard.release(functionKeys[i][j]);
+                              }
+                         } else { // not using function lock
                               Keyboard.release(characterKeys[i][j]);
                               if (characterKeys[i][j] == KEY_CAPS_LOCK && bCapsLock == false) {
                                    // do nothing
